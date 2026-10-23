@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#070a0c">
+  <meta name="description" content="坦克大战 STEEL VANGUARD —— 一款使用 HTML5 Canvas 制作的复古街机坦克游戏。守住基地，击退钢铁洪流。">
+  <title>坦克大战 · STEEL VANGUARD</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page-glow" aria-hidden="true"></div>
+
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="坦克大战 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="20" width="32" height="13" rx="2" fill="#5ee7f2"/>
+            <rect x="8" y="14" width="24" height="11" rx="2" fill="#a8f6ff"/>
+            <rect x="24" y="9" width="4" height="12" fill="#5ee7f2"/>
+            <rect x="21" y="7" width="10" height="4" fill="#f6fbff"/>
+            <rect x="2" y="20" width="5" height="13" fill="#1c737e"/>
+            <rect x="33" y="20" width="5" height="13" fill="#1c737e"/>
+            <path d="M7 23h5v2H7zm0 5h5v2H7zm21-5h5v2h-5zm0 5h5v2h-5z" fill="#071115"/>
+          </svg>
+        </span>
+        <span class="brand-copy">
+          <span class="brand-kicker">STEEL VANGUARD · ARCADE DIVISION</span>
+          <span class="brand-title">坦克大战</span>
+        </span>
+      </a>
+
+      <div class="top-actions">
+        <button class="icon-button" id="soundBtn" type="button" aria-label="切换声音" aria-pressed="true" title="声音">
+          <svg class="icon icon-sound-on" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zm-2.5-8v2a6 6 0 0 1 0 12v2a8 8 0 0 0 0-16z" fill="currentColor"/>
+          </svg>
+          <svg class="icon icon-sound-off" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9v6h4l5 4V5L8 9H4zm13.2 3 2.4-2.4-1.4-1.4-2.4 2.4-2.4-2.4-1.4 1.4 2.4 2.4-2.4 2.4 1.4 1.4 2.4-2.4 2.4 2.4 1.4-1.4-2.4-2.4z" fill="currentColor"/>
+          </svg>
+          <span class="sr-only">声音</span>
+        </button>
+        <button class="icon-button" id="fullscreenBtn" type="button" aria-label="全屏" title="全屏">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm16 0h-2v4h-4v2h6v-6z" fill="currentColor"/>
+          </svg>
+          <span class="sr-only">全屏</span>
+        </button>
+        <button class="text-button" id="pauseBtn" type="button" aria-label="暂停游戏" title="暂停 (P)">
+          <span class="pause-glyph" aria-hidden="true"><i></i><i></i></span>
+          <span>暂停</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="game-panel" aria-label="游戏区域">
+        <div class="hud">
+          <div class="hud-cell hud-level">
+            <span class="hud-label">战区</span>
+            <span class="hud-value" id="levelLabel">01</span>
+          </div>
+          <div class="hud-cell hud-score">
+            <span class="hud-label">作战积分</span>
+            <span class="hud-value" id="scoreLabel">000000</span>
+          </div>
+          <div class="hud-cell hud-lives">
+            <span class="hud-label">装甲单元</span>
+            <span class="hud-value"><i class="mini-tank" aria-hidden="true"></i><span id="livesLabel">×3</span></span>
+          </div>
+          <div class="hud-cell hud-enemies">
+            <span class="hud-label">剩余敌军</span>
+            <span class="hud-value" id="enemiesLabel">10</span>
+          </div>
+          <div class="hud-scan" aria-hidden="true"><span></span></div>
+        </div>
+        <div class="hud-progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+        <div class="screen-frame" id="screenFrame">
+          <canvas id="game" width="1024" height="1024" aria-label="坦克大战游戏画面"></canvas>
+          <div class="screen-fx" aria-hidden="true"></div>
+          <div class="screen-corners" aria-hidden="true"></div>
+
+          <div class="toast" id="toast" role="status" aria-live="polite">
+            <span class="toast-icon" id="toastIcon" aria-hidden="true"></span>
+            <span class="toast-copy">
+              <strong id="toastTitle">护盾启动</strong>
+              <small id="toastDetail">装甲临时无敌</small>
+            </span>
+          </div>
+
+          <div class="overlay" id="overlay" aria-hidden="false">
+            <div class="overlay-card" id="overlayCard">
+              <div class="overlay-eyebrow" id="overlayEyebrow">ARCADE PROTOCOL 1985</div>
+              <h1 class="overlay-title" id="overlayTitle">坦克大战</h1>
+              <p class="overlay-desc" id="overlayDesc">守住南方基地，击退一波又一波钢铁洪流。</p>
+              <div class="overlay-stats" id="overlayStats"></div>
+              <button class="primary-button" id="overlayBtn" type="button">
+                <span id="overlayBtnText">开始战斗</span>
+                <span class="button-arrow" aria-hidden="true">→</span>
+              </button>
+              <p class="overlay-hint" id="overlayHint">方向键 / WASD 移动 · 空格 开火</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mobile-controls" id="mobileControls" aria-label="触屏操作">
+          <div class="dpad" aria-label="移动方向">
+            <button class="dpad-btn dpad-up" type="button" data-dir="up" aria-label="向上">▲</button>
+            <button class="dpad-btn dpad-left" type="button" data-dir="left" aria-label="向左">◀</button>
+            <span class="dpad-core" aria-hidden="true"></span>
+            <button class="dpad-btn dpad-right" type="button" data-dir="right" aria-label="向右">▶</button>
+            <button class="dpad-btn dpad-down" type="button" data-dir="down" aria-label="向下">▼</button>
+          </div>
+          <button class="fire-btn" id="fireBtn" type="button" aria-label="开火">
+            <span>FIRE</span>
+            <small>开火</small>
+          </button>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <section class="side-card mission-card">
+          <div class="side-label"><span></span> 行动简报</div>
+          <div class="mission-code" id="missionCode">OP. 01 / OUTPOST</div>
+          <h2 id="missionName">前哨站</h2>
+          <p id="missionDesc">敌军侦察编队正在逼近。依托废墟掩体，守住南侧指挥基地。</p>
+          <div class="mission-meter">
+            <span>战区进度</span>
+            <div class="mission-track"><i id="missionTrack"></i></div>
+            <span id="missionProgress">0%</span>
+          </div>
+        </section>
+
+        <section class="side-card">
+          <div class="side-label"><span></span> 操作手册</div>
+          <div class="controls-list">
+            <div class="control-row">
+              <div class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
+              <span>移动装甲</span>
+            </div>
+            <div class="control-row">
+              <div class="keys"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></div>
+              <span>移动装甲</span>
+            </div>
+            <div class="control-row">
+              <div class="keys"><kbd class="wide">SPACE</kbd></div>
+              <span>发射炮弹</span>
+            </div>
+            <div class="control-row">
+              <div class="keys"><kbd>P</kbd><kbd class="wide">ESC</kbd></div>
+              <span>暂停 / 继续</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="side-card">
+          <div class="side-label"><span></span> 战场补给</div>
+          <ul class="powerup-list">
+            <li><i class="power-swatch power-shield"></i><span><strong>能量护盾</strong><small>短时间免疫伤害</small></span></li>
+            <li><i class="power-swatch power-rapid"></i><span><strong>速射模块</strong><small>大幅提升射速</small></span></li>
+            <li><i class="power-swatch power-life"></i><span><strong>备用装甲</strong><small>增加一次出击机会</small></span></li>
+            <li><i class="power-swatch power-freeze"></i><span><strong>低温脉冲</strong><small>冻结全部敌军</small></span></li>
+          </ul>
+        </section>
+
+        <section class="side-card record-card">
+          <div class="side-label"><span></span> 最高纪录</div>
+          <div class="record-row">
+            <strong id="highScoreLabel">000000</strong>
+            <span>个人最佳</span>
+          </div>
+          <div class="record-rule"><span></span><i>LOCAL ARCHIVE</i><span></span></div>
+          <div class="record-note">砖墙可以被击毁，钢墙不能。别让炮弹落在基地上。</div>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <span>STEEL VANGUARD / 坦克大战</span>
+      <span class="footer-dot" aria-hidden="true"></span>
+      <span>HTML5 CANVAS · NO EXTERNAL ASSETS</span>
+      <span class="footer-spacer"></span>
+      <a class="footer-link" href="https://github.com/gbj18479830620/tank-battle" target="_blank" rel="noopener">GITHUB ↗</a>
+      <span class="footer-status"><i></i> SYSTEM ONLINE</span>
+    </footer>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
